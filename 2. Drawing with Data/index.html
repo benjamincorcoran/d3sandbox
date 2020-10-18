@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Project 1</title>
+        <script src='../d3.js' type="text/javascript"></script>
+        <style>
+            div.bar{
+                display:inline-block;
+                width:25px;
+                height:75px;
+                margin-right: 2px;
+                background-color: olivedrab;
+            }
+            svg{
+                display:block;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Project 1</h1>
+        <script type="text/javascript">
+            d3.select('body').append('p').text('Hello world!');
+
+            var rowConverter = function(d){
+                return {
+                    variety: d.variety,
+                    sepalWidth: parseFloat(d['sepal width']),
+                    petalLengh: parseFloat(d['petal length']),
+                    petalWidth: parseFloat(d['petal width']),
+                    sepalLength: parseFloat(d['sepal length'])
+                };
+            };
+          
+            var dataset;
+
+            var buildParas = function(){
+                d3.select("body").append("h2").text("Bad Chartos");
+                d3.selectAll('p')
+                  .data(dataset)
+                  .enter()
+                  .append('div')
+                  .attr("class","bar")
+                  .style("height", function(d){
+                      return (d.sepalWidth)*12 + "px";
+                  })
+            }
+
+            // Bad bar chart with divs
+
+            d3.csv('../iris.csv', rowConverter).then(function(d){
+                dataset = d;
+                buildParas(); 
+                d3.select("body").append("h2").text("Good Chartos");
+                properBChart();               
+            });
+
+            
+            // playing with Circles and SVGs
+
+            var w = 400;
+            var h = 200;
+
+            d3.select("body").append("h2").text("Circles");
+            var svg = d3.select('body')
+                        .append('svg')
+                        .attr("width",w)
+                        .attr("height",h);
+
+    
+
+            var dataset2 = [1,2,3,4,5];
+            
+            circles = svg.selectAll('circle')
+               .data(dataset2)
+               .enter()
+               .append('circle');
+
+            circles.attr("cx", function(d,i){
+                        return (i*50)+40+d*5;
+                    })
+                    .attr("cy", h/2)
+                    .attr("r", function(d){
+                        return d*5;
+                    });
+            
+            circles.attr("fill", "yellow")
+                   .attr("stroke", "green")
+                   .attr("stroke-width", function(d){
+                       return d;
+                   });
+            
+            // create a bar chart in an SVG
+            
+            var properBChart = function(){
+            
+                var w = 600;
+                var h = 200;
+                var barPadding = 1;
+                bArea = d3.select("body")
+                        .append("svg")
+                        .attr("width",w)
+                        .attr("height",h);
+                
+                bArea.selectAll("rect")
+                    .data(dataset)
+                    .enter()
+                    .append("rect")
+                    .attr("x", function(d, i){
+                        return i*(w/dataset.length);
+                    })
+                    .attr("y", function(d){
+                        return h-d.sepalWidth*35;
+                    })
+                    .attr("width", w/dataset.length - barPadding)
+                    .attr("height",function(d){
+                        return d.sepalWidth*35;
+                    })
+                    .attr("fill", function(d){
+                        return "rgb("+Math.round(d.sepalWidth/5*256)+",0,0)";
+                    })
+            };
+
+
+     
+
+          
+
+        </script>
+    </body>
+</html>
