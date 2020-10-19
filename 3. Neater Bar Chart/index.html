@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Neater Bar Chart</title>
+        <script type="text/javascript" src="../d3.js"></script>
+
+    </head>
+    <body>
+        <h1>Neat Bar Chart</h1>
+        <svg id="svg"></svg>
+
+        <script>
+           
+            var WIDTH = 600;
+            var HEIGHT = 400;
+            var BAR_PADDING = 2;
+
+            var ints = [];
+            for(var i=0; i<25; i++){
+                ints.push(Math.round(HEIGHT*Math.random()));
+            }
+            var svg = d3.select('#svg')
+                        .attr('width',WIDTH)
+                        .attr('height',HEIGHT);
+
+            var get_x_pos = function(d,i){
+                return i*(WIDTH/ints.length);
+            }
+            var get_y_pos = function(d,i){
+                return HEIGHT - d;
+            }
+            
+            svg.selectAll('rect')
+               .data(ints)
+               .enter()
+               .append('rect')
+               .attr("class","bar")
+               .attr("x", get_x_pos)
+               .attr("y", get_y_pos)
+               .attr("width", function(d,i){
+                   return WIDTH/ints.length - BAR_PADDING;
+               })
+               .attr("height", function(d,i){
+                   return d;
+               })
+               .attr("fill", function(d,i){
+                   return "rgb("+Math.round(256*(1-d/400))+",0,0)"
+               });
+            
+            svg.selectAll('text')
+               .data(ints)
+               .enter()
+               .append('text')
+               .text(function(d){
+                   return d;
+               })
+               .attr("x", function(d,i){
+                   return get_x_pos(d,i) + (WIDTH/ints.length - BAR_PADDING)/2
+               })
+               .attr("y", function(d,i){
+                   return get_y_pos(d,i)+14;
+               })
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "11px")
+               .attr("fill", "white")
+               .attr("text-anchor","middle")
+            
+
+        </script>
+    </body>
+</html>
