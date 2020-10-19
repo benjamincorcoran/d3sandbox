@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Time scales</title>
+        <script type="text/javascript" src="../d3.js"></script>
+    </head>
+    <body>
+        <h1>Time scales</h1>
+        <svg id="svg"></svg>
+
+        <script>
+            var WIDTH = 300;
+            var HEIGHT = 600;
+            var PADDING = 20;
+
+            var dateParser = d3.timeParse("%d/%M/%Y")
+            // load data
+            var parseCSV = function(d){
+                return {
+                    date: dateParser(d.date),
+                    value: parseInt(d.value)
+                };
+            }
+            var dataset;
+            d3.csv("data.csv", parseCSV).then(function(d){
+                dataset = d;
+                buildChart()
+            });
+
+            var svg = d3.select("#svg")
+                        .attr("width", WIDTH)
+                        .attr("height", HEIGHT)
+            
+            var buildChart = function(){
+
+                var xScale = d3.scaleTime()
+                               .domain([d3.min(dataset, function(d){return d.date}),
+                                       d3.max(dataset, function(d){return d.date})])
+                               .range([PADDING, WIDTH-PADDING*3])
+                var yScale = d3.scaleLinear()
+                               .domain([0, d3.max(dataset,function(d){return d.value})])
+                               .range([HEIGHT-PADDING, PADDING])
+                
+                var dateFormat = d3.timeFormat("%b %e")
+
+
+                svg.selectAll("circle")
+                   .data(dataset)
+                   .enter()
+                   .append("circle")
+                   .attr("cx", function(d){
+                       return xScale(d.date)
+                   })
+                   .attr("cy", function(d){
+                       return yScale(d.value);
+                   })
+                   .attr("r",5)
+                   .attr("fill", "rgba(125,0,0)")
+                   .attr("fill-opacity","0.7")
+                
+                svg.selectAll("text")
+                   .data(dataset)
+                   .enter()
+                   .append("text")
+                   .attr("x", function(d){
+                       return xScale(d.date)+5
+                   })
+                   .attr("y", function(d){
+                       return yScale(d.value)-5
+                   })
+                   .attr("font-family","sans-serif")
+                   .attr("font-size","10px")
+                   .attr("fill", "grey")
+                   .text(function(d){
+                       return dateFormat(d.date)+": "+d.value
+                   })
+            }
+
+
+
+
+
+        </script>
+    </body>
+</html>
