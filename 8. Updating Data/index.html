@@ -57,10 +57,12 @@
                     .attr("height",HEIGHT)
         
         svg.append("g")
+            .attr("class","x axis")
             .attr("transform","translate(0,"+(HEIGHT-PADDING)+")")
             .call(xAxis)
         
         svg.append("g")
+            .attr("class","y axis")
             .attr("transform","translate("+PADDING+",0)")
             .call(yAxis)
                 
@@ -113,6 +115,10 @@
                .delay(function(d,i){
                     return i*50;
                 })
+                .on("start", function(){
+                    d3.select(this)
+                      .attr("fill","magenta");
+                })
             //    .ease(d3.easeBounceOut)
                .attr("y", function(d){
                     return yScale(d)
@@ -132,6 +138,12 @@
                 .delay(function(d,i){
                     return i*50;
                 })
+                .on("start", function(){
+                    d3.select(this)
+                      .attr("fill", function(d){
+                          "rgb(0,0,"+cScale(d)+")";
+                      })
+                })
                 .text(function(d){
                     return Math.round(d);
                 })
@@ -140,9 +152,19 @@
                 })
                 .attr("y", function(d){
                     return yScale(d)+10;
-                });
+                })
+                .transition()
+                .duration(200)
+                .attr("fill","white")
+
+                yScale.domain([0, d3.max(dataset)]);
+                svg.select(".y.axis")
+                   .transition()
+                   .duration(1000)
+                   .call(yAxis)
           })
 
+          
 
 
     </script>
