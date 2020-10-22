@@ -1,0 +1,257 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1000px, initial-scale=1.0">
+    <title>Adding and Removing Data</title>
+    <script src="../d3.js"></script>
+</head>
+<body>
+    <h1>Adding and Removing Data</h1>
+    <p id="add">Click here to add a bar</p>
+    <p id="remove">Click here to remove a bar</p>
+    <svg id="svg"></svg>
+
+    <script>
+        var WIDTH = 600;
+        var HEIGHT = 400;
+        var PADDING = 30;
+
+        RAND_INT = 20
+        RAND_MAX = 30;
+        //Initial Dataset (create with keys)
+        var dataset = [];
+        for(var i=0; i<RAND_INT; i++){
+            dataset.push({'key':i,
+                          'value':Math.random()*RAND_MAX})
+        }
+
+        // Key function
+        var key = function(d){
+            return d.key;
+        }
+
+        // Select SVG 
+        var svg = d3.select("#svg")
+                    .attr("width",WIDTH)
+                    .attr("height",HEIGHT);
+
+        // Add clipping mask
+
+        svg.append("clipPath")
+           .attr("id","chartArea")
+           .append("rect")
+           .attr("x",PADDING)
+           .attr("y",PADDING)
+           .attr("height",HEIGHT-2*PADDING)
+           .attr("width",WIDTH-2*PADDING);
+
+        // Add Axes
+
+        var xScale = d3.scaleBand()
+                       .domain(d3.range(RAND_INT))
+                       .range([PADDING,WIDTH-PADDING])
+                       .paddingInner(0.1);
+
+        var yScale = d3.scaleLinear()
+                       .domain([0,d3.max(dataset, function(d){return d.value})])
+                       .range([HEIGHT-PADDING,PADDING]);
+        
+        var xAxis = d3.axisBottom()
+                      .scale(xScale);
+        
+        var yAxis = d3.axisLeft()
+                      .scale(yScale);
+        
+        svg.append("g")
+           .attr("class","x axis")
+           .attr("transform","translate(0,"+(HEIGHT-PADDING)+")")
+           .call(xAxis)
+        
+        svg.append("g")
+           .attr("class","y axis")
+           .attr("transform","translate("+PADDING+",0)")
+           .call(yAxis)
+
+        
+
+        // Add Bars
+
+        svg.append("g")
+           .attr("id","bars")
+           .attr("clip-path","url(#chartArea)")
+           .selectAll("rect")
+           .data(dataset, key)
+           .enter()
+           .append("rect")
+           .attr("x", function(d,i){
+               return xScale(i);
+           })
+           .attr("y", function(d){
+               return yScale(d.value);
+           })
+           .attr("height", function(d){
+               return HEIGHT - PADDING - yScale(d.value);
+           })
+           .attr("width", xScale.bandwidth())
+           .attr("fill", function(d){
+               return "rgb(0,0,"+((1-d.value/RAND_MAX)*200+40)+")";
+           })
+
+        // Add Text Annos
+
+        svg.append("g")
+           .attr("id","anno")
+           .attr("clip-path","url(#chartArea)")
+           .selectAll("text")
+           .data(dataset, key)
+           .enter()
+           .append("text")
+           .attr("text-anchor","middle")
+           .attr("x", function(d,i){
+               return xScale(i)+xScale.bandwidth()/2;
+           })
+           .attr("y", function(d){
+               return yScale(d.value) + 10;
+           })
+           .attr("fill","white")
+           .attr("font-family","sans-serif")
+           .attr("font-size","10")
+           .text(function(d){return Math.round(d.value)})
+
+        // Add new value
+        var addNew = function(){
+            i = i+1;
+            dataset.push({'key':i, 'value':Math.random()*RAND_MAX});
+            xScale.domain(d3.range(dataset.length));
+
+            var bars = svg.select("#bars")
+                      .selectAll("rect")
+                      .data(dataset, key)
+        
+            bars.enter()
+                .append("rect")
+                .attr("x",WIDTH)
+                .attr("y", function(d){
+                    return yScale(d.value);
+                })
+                .attr("height", function(d){
+                    return HEIGHT - PADDING - yScale(d.value);
+                })
+                .attr("width", xScale.bandwidth())
+                .attr("fill", function(d){
+                    return "rgb(0,0,"+((1-d.value/RAND_MAX)*200+40)+")";
+                })
+                .merge(bars)
+                .transition()
+                .duration(500)
+                .attr('x', function(d,i){
+                    return xScale(i);
+                })
+                .attr('y', function(d){
+                    return yScale(d.value);
+                })                
+                .attr("width", xScale.bandwidth())
+                .attr('height', function(d){
+                    return HEIGHT - PADDING - yScale(d.value);
+                })
+            
+            var annos = svg.select("#anno")
+                           .selectAll("text")
+                           .data(dataset, key);
+            
+            annos.enter()
+                 .append("text")
+                 .attr("x",WIDTH)
+                 .attr("y", function(d){
+                    return yScale(d.value) + 10;
+                 })
+                 .text(function(d){
+                     return Math.round(d.value)
+                 })
+                 .attr("text-anchor","middle")
+                 .attr("fill","white")
+                 .attr("font-family","sans-serif")
+                 .attr("font-size","10")
+                 .merge(annos)
+                 .transition()
+                 .duration(500)
+                 .attr("x", function(d,i){
+                     return xScale(i)+xScale.bandwidth()/2;
+                 })
+                 .attr("y", function(d){
+                     return yScale(d.value)+10
+                 })
+
+            svg.select(".x.axis")
+               .transition()
+               .duration(500)
+               .call(xAxis)
+
+        }
+
+        var removeOld = function(){
+            dataset.shift();
+            xScale.domain(d3.range(dataset.length));
+
+            var bars = svg.select('#bars')
+                          .selectAll('rect')
+                          .data(dataset, key);
+            
+            bars.exit()
+                .transition()
+                .duration(500)
+                .attr("x",-xScale.bandwidth())
+                .remove()
+            
+            bars.transition()
+                .duration(500)
+                .attr('x', function(d,i){
+                    return xScale(i);
+                })
+                .attr('y', function(d){
+                    return yScale(d.value);
+                })                
+                .attr("width", xScale.bandwidth())
+                .attr('height', function(d){
+                    return HEIGHT - PADDING - yScale(d.value);
+                })
+            
+            var annos = svg.select("#anno")
+                           .selectAll("text")
+                           .data(dataset, key)
+            
+            annos.exit()
+                 .transition()
+                 .duration(500)
+                 .attr("x",-xScale.bandwidth())
+                 .remove()
+            
+            annos.transition()
+                 .duration(500)
+                 .attr("x", function(d,i){
+                     return xScale(i)+xScale.bandwidth()/2;
+                 })
+                 .attr("y", function(d){
+                     return yScale(d.value)+10
+                 })
+            
+            svg.select(".x.axis")
+               .transition()
+               .duration(500)
+               .call(xAxis)
+            
+        }
+
+        d3.select("#add")
+          .on("click", function(){
+              addNew();
+          })
+        d3.select("#remove")
+          .on("click", function(){
+              removeOld();
+          })
+
+
+    </script>
+</body>
+</html>
