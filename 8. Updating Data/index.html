@@ -1,0 +1,151 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200px, initial-scale=1.0">
+    <title>Updating Data</title>
+    <script src="../d3.js" type="text/javascript"></script>
+</head>
+<body>
+    <h1>Updating Data</h1>
+    <p>Click this paragraph to update the data.</p>
+    <svg id="svg"></svg>
+
+    <script>
+
+        var WIDTH = 600;
+        var HEIGHT = 400;
+        var PADDING = 20;
+
+        var DATAITEMS = 30;
+
+        // Generate Data
+        var dataset;
+
+
+        var generateData = function(){
+            var d = [];
+
+            for(var i=0; i<DATAITEMS; i++){
+                d.push(Math.random()*DATAITEMS)
+            }
+            dataset = d;
+        };
+
+        generateData();
+
+        var xScale = d3.scaleBand()
+                        .domain(d3.range(0,DATAITEMS))
+                        .range([PADDING, WIDTH-PADDING])
+                        .paddingInner(0.05);
+
+        var yScale = d3.scaleLinear()
+                        .domain([0, d3.max(dataset)])
+                        .range([HEIGHT-PADDING, PADDING]);
+
+        var cScale = d3.scaleLinear()
+                        .domain([0,d3.max(dataset)])
+                        .range([40,200])
+
+        var xAxis = d3.axisBottom()
+                        .scale(xScale);
+        
+        var yAxis = d3.axisLeft()
+                        .scale(yScale);
+        
+        var svg = d3.select('#svg')
+                    .attr("width",WIDTH)
+                    .attr("height",HEIGHT)
+        
+        svg.append("g")
+            .attr("transform","translate(0,"+(HEIGHT-PADDING)+")")
+            .call(xAxis)
+        
+        svg.append("g")
+            .attr("transform","translate("+PADDING+",0)")
+            .call(yAxis)
+                
+        svg.selectAll("rect")
+            .data(dataset)
+            .enter()
+            .append("rect")
+            .attr("x", function(d,i){
+                return xScale(i)
+            })
+            .attr("y", function(d){
+                return yScale(d)
+            })
+            .attr("height", function(d){
+                return HEIGHT - PADDING - yScale(d)
+            })
+            .attr("width", xScale.bandwidth())
+            .attr("fill",function(d){
+                return "rgb(0,0,"+cScale(d)+")";
+            });
+
+        svg.selectAll("text.anno")
+            .data(dataset)
+            .enter()
+            .append("text")
+            .text(function(d){
+                return Math.round(d);
+            })
+            .attr("x", function(d,i){
+                return xScale(i) + xScale.bandwidth()/2;
+            })
+            .attr("y", function(d){
+                return yScale(d)+10;
+            })
+            .attr("text-anchor","middle")
+            .attr("fill","white")
+            .attr("class","anno")
+            .attr("font-family","sans-serif")
+            .attr("font-size","10px")
+
+
+        d3.select('p')
+          .on('click', function(){
+            generateData();
+            
+            svg.selectAll("rect")
+               .data(dataset)
+               .transition()
+               .duration(1000)
+               .delay(function(d,i){
+                    return i*50;
+                })
+            //    .ease(d3.easeBounceOut)
+               .attr("y", function(d){
+                    return yScale(d)
+                })
+               .attr("height", function(d){
+                    return HEIGHT - PADDING - yScale(d)
+                })
+               .attr("fill",function(d){
+                return "rgb(0,0,"+cScale(d)+")";
+                });
+
+            svg.selectAll("text.anno")
+                .data(dataset)
+                .transition()
+                .duration(1000)
+                // .ease(d3.easeBounceOut)
+                .delay(function(d,i){
+                    return i*50;
+                })
+                .text(function(d){
+                    return Math.round(d);
+                })
+                .attr("x", function(d,i){
+                    return xScale(i) + xScale.bandwidth()/2;
+                })
+                .attr("y", function(d){
+                    return yScale(d)+10;
+                });
+          })
+
+
+
+    </script>
+
+</body>
+</html>
