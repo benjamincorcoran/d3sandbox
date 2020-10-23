@@ -1,0 +1,148 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=800px, initial-scale=1.0">
+    <title>Interactivity</title>
+    <script src="../d3.js"></script>
+</head>
+<body>
+    <h1>Interactivity</h1>
+    <svg id="svg"></svg>
+
+    <script>
+        var HEIGHT = 400;
+        var WIDTH = 600;
+        var PADDING = 30;
+
+        var RAND_MAX=30;
+
+        var dataset = []
+        for(var i = 0; i<20; i++){
+            dataset.push({'key':i, 'value':Math.random()*RAND_MAX})
+        }
+
+        var key = function(d){
+            return d.key
+        };
+
+        var xScale = d3.scaleBand()
+                       .domain(d3.range(dataset.length))
+                       .range([PADDING,WIDTH - PADDING])
+                       .paddingInner(0.05);
+
+        var yScale = d3.scaleLinear()
+                       .domain([0,d3.max(dataset, function(d){return d.value})])
+                       .range([HEIGHT-PADDING, PADDING]);
+
+        var xAxis = d3.axisBottom()
+                      .scale(xScale);
+        
+        var yAxis = d3.axisLeft()
+                      .scale(yScale);
+        
+        var svg = d3.select('#svg')
+                    .attr("width", WIDTH)
+                    .attr("height", HEIGHT);
+
+        svg.append("g")
+           .attr("class", "x axis")
+           .attr("transform","translate(0,"+(HEIGHT-PADDING)+")")
+           .call(xAxis);
+        
+        svg.append("g")
+           .attr("class", "y axis")
+           .attr("transform","translate("+PADDING+",0)")
+           .call(yAxis);
+
+        svg.append("clipPath")
+           .attr("id","chartArea")
+           .append("rect")
+           .attr("x",PADDING)
+           .attr("y",PADDING)
+           .attr("height",HEIGHT-2*PADDING)
+           .attr("width",WIDTH-2*PADDING)
+
+        svg.append("g")
+           .attr("id","bars")
+           .attr("clip-path","url(#chartArea)");
+        
+        svg.append("g")
+           .attr("id","anno")
+           .attr("clip-path","url(#chartArea)")
+           .style("pointer-events","none");
+        
+        var bars = d3.select("#bars")
+                     .selectAll("rect")
+                     .data(dataset);
+
+        var anno = d3.select("#anno")
+                     .selectAll("text")
+                     .data(dataset);
+           
+        bars.enter()
+            .append("rect")
+            .attr("x",function(d,i){
+                return xScale(i);
+            })
+            .attr("y", function(d){
+                return HEIGHT;
+            })
+            .attr("width", xScale.bandwidth())
+            .attr("height", function(d){
+                return HEIGHT-PADDING-yScale(d.value);
+            })
+            .attr("fill", function(d){
+                return "rgb("+d.value*10+",0,0)";
+            })
+            .transition()
+            .duration(1000)
+            .delay(function(d,i){
+                return i*50;
+            })
+            .attr("y", function(d){
+                return yScale(d.value)
+            })
+        
+        d3.select("#bars")
+          .selectAll("rect")
+          .on("mouseover", function(){
+                d3.select(this)
+                  .transition()
+                  .duration(500)
+                  .attr("fill", function(d){
+                      return "rgb(0,"+200+",0)"
+                  });
+            })
+          .on("mouseout", function(){
+              d3.select(this)
+                .transition()
+                .duration(500)
+                .attr("fill", function(d){
+                return "rgb("+d.value*10+",0,0)";
+            })
+          })
+
+
+
+
+        anno.enter()
+            .append("text")
+            .attr("x", function(d,i){
+                return xScale(i)+xScale.bandwidth()/2;
+            })
+            .attr("text-anchor","middle")
+            .attr("y",function(d){
+                return yScale(d.value) + 10;
+            })
+            .attr("font-family","sans-serif")
+            .attr("font-size","10px")
+            .attr("fill","white")
+            .text(function(d){
+                return Math.round(d.value);
+            })
+        
+    
+
+    </script>
+</body>
+</html>
