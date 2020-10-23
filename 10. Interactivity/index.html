@@ -40,6 +40,46 @@
         var yAxis = d3.axisLeft()
                       .scale(yScale);
         
+        var sortDir = true;
+
+        var sort = function(){              
+            d3.select("#bars")
+                .selectAll("rect")
+                .sort(function(a,b){
+                    if(sortDir){
+                        return d3.ascending(a.value,b.value);
+                    }else{
+                        return d3.descending(a.value,b.value);
+                    }
+                })
+                .transition('sortBars')
+                .duration(1000)
+                .delay(function(d,i){
+                    return i*10;
+                })
+                .attr('x', function(d,i){
+                    return xScale(i);
+                })
+            d3.select("#anno")
+                .selectAll("text")
+                .sort(function(a,b){
+                    if(sortDir){
+                        return d3.ascending(a.value,b.value);
+                    }else{
+                        return d3.descending(a.value,b.value);
+                    }
+                })
+                .transition('sortBars')
+                .duration(1000)
+                .delay(function(d,i){
+                    return i*10;
+                })
+                .attr('x', function(d,i){
+                    return xScale(i)+xScale.bandwidth()/2;
+                })
+            sortDir = !sortDir;
+            }
+
         var svg = d3.select('#svg')
                     .attr("width", WIDTH)
                     .attr("height", HEIGHT);
@@ -93,7 +133,7 @@
             })
             .attr("fill", function(d){
                 return "rgb("+d.value*10+",0,0)";
-            })
+            })            
             .transition()
             .duration(1000)
             .delay(function(d,i){
@@ -121,6 +161,9 @@
                 return "rgb("+d.value*10+",0,0)";
             })
           })
+          .on("click", function(){
+              sort();
+          })
 
 
 
@@ -140,6 +183,7 @@
             .text(function(d){
                 return Math.round(d.value);
             })
+
         
     
 
