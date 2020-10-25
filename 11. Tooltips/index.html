@@ -1,0 +1,175 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=800, initial-scale=1.0">
+    <title>Tooltips</title>
+    <script src="../d3.js"></script>
+    <style>
+        #tooltip{
+            position:absolute;
+            font-family:sans-serif;
+            width: 200px;
+            height: auto;
+            padding: 10px;
+            background-color: white;
+            -webkit-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 10px;
+            -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+
+        }
+        #tooltip.hidden{
+            display:none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tooltips</h1>
+    <svg id="svg"></svg>
+    <div id="tooltip" class="hidden"><b>Heading</b><br><span id="value"></span></div>
+
+    <script>
+        var WIDTH = 600;
+        var HEIGHT = 400;
+        var PADDING = 30;
+
+                
+        //SVG 
+        var svg = d3.select('#svg')
+                    .attr("width",WIDTH)
+                    .attr("height",HEIGHT)
+
+
+        // Random Data
+        var dataset = [];
+        for(var i=0; i<20; i++){
+            dataset.push(
+                {'key':i, 'value':Math.random()*40}
+            )
+        }
+
+        var key = function(d){
+            return d.key
+        }
+        // Build scales 
+        var xScale = d3.scaleBand()
+                       .domain(d3.range(dataset.length))
+                       .range([PADDING, WIDTH-PADDING])
+                       .paddingInner(0.05);
+
+        var yScale = d3.scaleLinear()
+                       .domain([0,d3.max(dataset, function(d){return d.value;})])
+                       .range([HEIGHT-PADDING, PADDING]);
+        
+        //Build axes
+        var xAxis = d3.axisBottom()
+                      .scale(xScale);
+        
+        var yAxis = d3.axisLeft()
+                      .scale(yScale);
+
+        svg.append("g")
+           .attr("class", "x axis")
+           .attr("transform", "translate(0,"+(HEIGHT-PADDING)+")")
+           .call(xAxis)
+
+        svg.append("g")
+           .attr("class", "y axis")
+           .attr("transform","translate("+PADDING+",0)")
+           .call(yAxis)
+
+        // Bars update object 
+        
+        svg.append("clipPath")
+           .attr("id","chartArea")
+           .append("rect")
+           .attr("x",PADDING)
+           .attr("y",PADDING)
+           .attr("height",HEIGHT-2*PADDING)
+           .attr("width",WIDTH-PADDING)
+
+        svg.append("g")
+           .attr("id","bars")
+           .attr("clip-path","url(#chartArea)")
+
+        var drawChart = function(){
+
+            var bars = d3.select("#bars")
+                         .selectAll("rect")
+                         .data(dataset, key);
+
+            xScale.domain(d3.range(dataset.length))
+            d3.select('.x.axis')
+              .transition()
+              .duration(500)
+              .call(xAxis)
+            
+            var create = bars.enter()
+                            .append("rect")
+                            .attr("x",function(d,i){
+                                return xScale(i);
+                            })
+                            .attr("y",function(d){
+                                return yScale(d.value);
+                            })
+                            .attr("width", xScale.bandwidth())
+                            .attr("height", function(d){
+                                return HEIGHT-PADDING-yScale(d.value);
+                            })
+                            .attr("fill", function(d){
+                                return "rgb("+d.value*5+",0,0)";
+                            })
+                            .on("mouseover", function(e,d){
+                                var xpos = parseFloat(d3.select(this).attr("x"))+xScale.bandwidth()/2;
+                                var ypos = parseFloat(d3.select(this).attr("y"))+15;
+                                
+                                d3.select(this).attr("fill-opacity","0.8")
+
+                                svg.append("text")
+                                    .attr("id","anno")
+                                    .attr("x",xpos)
+                                    .attr("y",ypos)
+                                    .attr("font-family","sans-serif")
+                                    .attr("text-anchor","middle")
+                                    .attr("font-size","11")
+                                    .attr("fill","white")
+                                    .text(function(){
+                                        return Math.round(d.value);
+                                    });
+                                
+                                d3.select('#tooltip')
+                                  .style("left",(xpos+10)+"px")
+                                  .style("top",(ypos+60)+"px")
+                                  .classed("hidden",false)
+                                  .select("#value")
+                                  .text(function(){
+                                      return Math.round(d.value)
+                                  })
+                            })
+                            .on('mouseout', function(){
+                                d3.select(this).attr("fill-opacity","1")
+                                d3.select("#anno").remove()
+                                d3.select("#tooltip").attr("class","hidden")
+                            })
+            
+
+
+            // Create tool tip with title -- Shitty
+
+            create.append("title")
+                  .text(function(d){
+                      return "The value is " + Math.round(d.value);
+                  })           
+
+        }
+
+        
+
+        drawChart();
+
+    </script>
+</body>
+</html>

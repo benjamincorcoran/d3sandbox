@@ -134,7 +134,7 @@
             .attr("fill", function(d){
                 return "rgb("+d.value*10+",0,0)";
             })            
-            .transition()
+            .transition("barEnter")
             .duration(1000)
             .delay(function(d,i){
                 return i*50;
