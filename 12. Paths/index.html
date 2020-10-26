@@ -25,10 +25,15 @@
         .dash{
             stroke-dasharray: 5px;
         }
+        #slider{
+            position:absolute;
+            -webkit-appearance: slider-vertical;
+        }
     </style>
 </head>
 <body>
     <h1>Paths</h1>
+    <input type="range" min="0" max="1000" value="500" id="slider" orient="vertical">
     <svg id="svg"></svg>
     <script>
         var HEIGHT = 400;
@@ -113,7 +118,7 @@
 
             var dangerArea = d3.area()
                                .x(function(d){return xScale(d.date)})
-                               .y0(function(d){return yScale(dangerZone)})
+                               .y0(function(d){return yScale(0)})
                                .y1(function(d){return yScale(d.value)})
                             //    .defined(function(d){return d.value>=dangerZone})
             
@@ -149,6 +154,41 @@
                .attr("y", yScale(dangerZone)+10)
                .attr("class","text redFill")
                .text("Danger zone: "+dangerZone)
+
+            d3.select("#slider")
+              .style("top","200")
+              .style("left",WIDTH)
+              .attr("max",d3.max(dataset,function(d){return d.value}))
+              .attr("min",d3.min(dataset,function(d){return d.value}))
+              .on("change", function(){
+                  var dz = this.value;
+
+                  svg.select("#safeZone").selectAll("rect")
+                    .transition()
+                    .duration(1000)
+                    .attr("y", yScale(dz))
+                    .attr("height",HEIGHT-yScale(dz));
+                
+                 svg.select("#dangerZone").selectAll("rect")
+                    .transition()
+                    .duration(1000)
+                    .attr("height",yScale(dz));
+
+                svg.selectAll(".text.redFill")
+                   .transition()
+                   .duration(1000)
+                   .attr("y", yScale(dz)+10)
+                   .text("Danger zone: "+dz)
+
+                dash = d3.line()
+                        .x(function(d){return xScale(d.date)})
+                        .y(function(d){return yScale(dz);})
+                
+                svg.select(".red.line.dash")
+                    .transition()
+                    .duration(1000)
+                    .attr("d", dash)
+              })
 
             
 
