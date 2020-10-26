@@ -17,7 +17,7 @@ Aim of this is to comfortably be able to develop using d3.js.
 4. [Scatter Plot](./4.%20Scatter%20Plot/)
 5. [Scales](./5.%20Scales/)
     1. [Time Scales](./5.%20Scales/5.1%20TimeScales/)
-6. [Axes](./6%20Axes/)
+6. [Axes](./6.%20Axes/)
 7. [Categorical Axes](./7.%20Categorical%20Axes/)
 8. [Updating Data](./8.%20Updating%20Data/)
 9. [Adding and Removing Data](./9.%20Adding%20and%20Removing%20Data/)
